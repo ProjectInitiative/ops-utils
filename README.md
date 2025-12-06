@@ -43,6 +43,22 @@ outputs = { self, nixpkgs, ops-utils }:
       # This automatically exposes all current and future tools from ops-utils.
       // ops
     );
+
+    apps = forAllSystems (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        ops = ops-utils.lib.mkUtils { inherit pkgs; };
+        
+        # Generate apps for all ops tools automatically
+        opsApps = ops-utils.lib.mkApps { inherit pkgs; } ops;
+      in
+      {
+        # Your other apps...
+        my-app = { type = "app"; program = "..."; };
+      }
+      # Merge the ops apps
+      // opsApps
+    );
   };
 ```
 

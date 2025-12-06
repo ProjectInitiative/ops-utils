@@ -27,6 +27,13 @@
           push-insecure = mkPushInsecure { inherit pkgs system; };
           dev-push = mkDevPush { inherit pkgs; };
         };
+
+        # Helper to generate apps for all utils
+        mkApps = { pkgs }: utils:
+          pkgs.lib.mapAttrs (name: pkg: {
+            type = "app";
+            program = "${pkg}/bin/${name}";
+          }) utils;
       };
 
       devShells = forAllSystems (system:
