@@ -36,12 +36,12 @@ outputs = { self, nixpkgs, ops-utils }:
         };
       in
       {
-        # Inherit the tools you want to expose
-        inherit (ops) build-image push-multi-arch push-insecure;
-        
         # Your other packages...
         my-app = pkgs.hello;
       }
+      # Merge the ops tools directly into your packages.
+      # This automatically exposes all current and future tools from ops-utils.
+      // ops
     );
   };
 ```
