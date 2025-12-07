@@ -62,6 +62,36 @@ outputs = { self, nixpkgs, ops-utils }:
   };
 ```
 
+Example usage for individiual packages:
+```nix
+# ... inside your outputs ...
+packages = forAllSystems (system:
+  let
+    pkgs = nixpkgs.legacyPackages.${system};
+    # One call to get them all!
+    ops = ops-utils.lib.mkUtils { inherit pkgs; };
+  in
+  {
+    inherit (ops) build-image push-multi-arch push-insecure;
+  }
+);
+
+apps = forAllSystems (system:
+  let
+    pkgs = nixpkgs.legacyPackages.${system};
+    ops = ops-utils.lib.mkUtils { inherit pkgs; };
+    
+    # Generate apps for all ops tools automatically
+    opsApps = ops-utils.lib.mkApps { inherit pkgs; } ops;
+  in
+  {
+    inherit (opsApps) build-image push-multi-arch push-insecure;
+    # Your other apps...
+    my-app = { type = "app"; program = "..."; };
+  }
+);
+```
+
 ### Available Functions (Low Level)
 
 If you prefer to instantiate tools individually, the raw functions are available under `lib`.
