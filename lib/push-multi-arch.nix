@@ -17,13 +17,19 @@ pkgs.writeShellScriptBin "push-multi-arch" ''
   SYSTEMS=(${builtins.toString supportedSystems})
   MANIFEST_LIST=()
 
+  echo "DEBUG: Current machine architecture: $(uname -m)"
+  echo "DEBUG: Checking Nix configuration..."
+  nix show-config | grep -E '^(system|extra-platforms) =' || echo "Failed to show config"
+
+  PLATFORMS="''${SYSTEMS[*]}"
+
   for ARCH_SYSTEM in "''${SYSTEMS[@]}"; do
     # Derive arch from system string
     ARCH=$(echo "$ARCH_SYSTEM" | sed 's/-linux//' | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
     
     echo "--- Building for $ARCH_SYSTEM ($ARCH) ---"
     # We assume the flake is in current directory (.)
-    nix build ".#packages.$ARCH_SYSTEM.$PACKAGE_NAME" -o "result-$PACKAGE_NAME-$ARCH"
+    nix build --option extra-platforms "$PLATFORMS" ".#packages.$ARCH_SYSTEM.$PACKAGE_NAME" -o "result-$PACKAGE_NAME-$ARCH"
     
     LOADED_IMAGE=$(docker load < "result-$PACKAGE_NAME-$ARCH" | grep "Loaded image" | sed 's/Loaded image: //')
     echo "Loaded image: $LOADED_IMAGE"
